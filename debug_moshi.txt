@@ -1,0 +1,6 @@
+Info: [SERVER] loading text tokenizer /Users/uiuo/.cache/huggingface/hub/models--kyutai--moshiko-mlx-q4/snapshots/18e4df760a34d5977a34517d7d1580e07acbb2f1/tokenizer_spm_32k_3.model
+Info: [SERVER] loading weights /Users/uiuo/.cache/huggingface/hub/models--kyutai--moshiko-mlx-q4/snapshots/18e4df760a34d5977a34517d7d1580e07acbb2f1/model.q4.safetensors
+Info: [SERVER] weights loaded
+Info: [SERVER] model warmed up
+Info: [SERVER] connected!
+Info: [CLIENT] received 'start' from server, starting...
