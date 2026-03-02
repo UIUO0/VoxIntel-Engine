@@ -24,6 +24,51 @@ def init_db():
     
     conn.commit()
     conn.close()
+
+def get_recent_logs(limit=20):
+    """
+    Retrieves the most recent conversation logs.
+    
+    Args:
+        limit (int): Number of records to return.
+        
+    Returns:
+        list: List of tuples (timestamp, speaker, text, sentiment_score)
+    """
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        SELECT timestamp, speaker, text, sentiment_score 
+        FROM logs 
+        ORDER BY id DESC 
+        LIMIT ?
+    ''', (limit,))
+    
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+def get_latest_sentiment():
+    """
+    Retrieves the sentiment score of the very last entry.
+    
+    Returns:
+        float: The last sentiment score, or 0.0 if no data exists.
+    """
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        SELECT sentiment_score 
+        FROM logs 
+        ORDER BY id DESC 
+        LIMIT 1
+    ''')
+    
+    row = cursor.fetchone()
+    conn.close()
+    return row[0] if row else 0.0
     print(f"Database initialized at: {DB_PATH}")
 
 def save_entry(speaker, text, sentiment_score):
