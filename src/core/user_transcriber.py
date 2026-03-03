@@ -7,6 +7,7 @@ import sounddevice as sd
 import queue
 import whisper
 import torch
+import difflib
 
 # Ensure parent directory is in path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
@@ -22,6 +23,10 @@ BLOCK_SIZE = 4096
 # TWO Queues
 raw_audio_queue = queue.Queue()
 processing_queue = queue.Queue()
+
+def get_similarity(s1, s2):
+    """Calculates similarity ratio between two strings (0.0 to 1.0)."""
+    return difflib.SequenceMatcher(None, s1.lower(), s2.lower()).ratio()
 
 def list_microphones():
     print("\n🔍 Scanning Audio Devices...")
@@ -112,6 +117,25 @@ def processing_thread():
             text = result['text'].strip()
             
             if text and len(text) > 2: # Ignore empty or tiny noise hallucinations
+                
+                # --- ECHO CANCELLATION LOGIC ---
+                # Check if this text is actually just Moshi speaking (Echo)
+                # We compare with the last few AI logs from DB
+                recent_ai_logs = db_manager.get_recent_logs(limit=5) # Get last 5 logs
+                is_echo = False
+                
+                for _, speaker, ai_text, _ in recent_ai_logs:
+                    if speaker == "AI":
+                        similarity = get_similarity(text, ai_text)
+                        if similarity > 0.6: # If > 60% similar, it's likely an echo
+                            print(f"\n🔇 Ignored Echo (Sim={similarity:.2f}): '{text}'")
+                            is_echo = True
+                            break
+                
+                if is_echo:
+                    continue
+                # -------------------------------
+
                 print(f"\n✅ Recognized: '{text}'")
                 
                 # Analyze Sentiment

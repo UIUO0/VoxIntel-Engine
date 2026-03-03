@@ -1,0 +1,8 @@
+Info: [SERVER] loading text tokenizer /Users/uiuo/.cache/huggingface/hub/models--kyutai--moshiko-mlx-q4/snapshots/18e4df760a34d5977a34517d7d1580e07acbb2f1/tokenizer_spm_32k_3.model
+Info: [SERVER] loading weights /Users/uiuo/.cache/huggingface/hub/models--kyutai--moshiko-mlx-q4/snapshots/18e4df760a34d5977a34517d7d1580e07acbb2f1/model.q4.safetensors
+Info: [SERVER] weights loaded
+Info: [SERVER] model warmed up
+Info: [SERVER] connected!
+Info: [CLIENT] received 'start' from server, starting...
+/opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/python3.11/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 10 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
