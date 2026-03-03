@@ -1,18 +1,42 @@
-import sqlite3
 import os
+import sqlite3
+import time
 from datetime import datetime
 
-# Define the database path
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data', 'voxintel.db')
+DB_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "voxintel.db"
+)
+
+
+def _get_connection():
+    conn = sqlite3.connect(DB_PATH, timeout=10, check_same_thread=False)
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA synchronous=NORMAL")
+    conn.execute("PRAGMA busy_timeout=10000")
+    return conn
+
+
+def _execute_write(query, params=(), retries=3):
+    for attempt in range(retries):
+        try:
+            conn = _get_connection()
+            cursor = conn.cursor()
+            cursor.execute(query, params)
+            conn.commit()
+            conn.close()
+            return
+        except sqlite3.OperationalError as e:
+            if "locked" not in str(e).lower() or attempt == retries - 1:
+                raise
+            time.sleep(0.1 * (attempt + 1))
+
 
 def init_db():
-    """Initializes the SQLite database and creates the logs table if it doesn't exist."""
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    
-    conn = sqlite3.connect(DB_PATH)
+    conn = _get_connection()
     cursor = conn.cursor()
-    
-    cursor.execute('''
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -20,111 +44,70 @@ def init_db():
             text TEXT NOT NULL,
             sentiment_score REAL
         )
-    ''')
-    
+        """
+    )
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_logs_speaker_id ON logs (speaker, id DESC)")
     conn.commit()
     conn.close()
 
 def get_recent_logs(limit=20):
-    """
-    Retrieves the most recent conversation logs.
-    
-    Args:
-        limit (int): Number of records to return.
-        
-    Returns:
-        list: List of tuples (timestamp, speaker, text, sentiment_score)
-    """
-    conn = sqlite3.connect(DB_PATH)
+    conn = _get_connection()
     cursor = conn.cursor()
-    
-    cursor.execute('''
-        SELECT timestamp, speaker, text, sentiment_score 
-        FROM logs 
-        ORDER BY id DESC 
+    cursor.execute(
+        """
+        SELECT timestamp, speaker, text, sentiment_score
+        FROM logs
+        ORDER BY id DESC
         LIMIT ?
-    ''', (limit,))
-    
+        """,
+        (limit,),
+    )
     rows = cursor.fetchall()
     conn.close()
     return rows
 
 def get_latest_sentiment(speaker_filter=None):
-    """
-    Retrieves the sentiment score of the very last entry.
-    Args:
-        speaker_filter (str): Optional. If set (e.g. 'User'), only returns sentiment for that speaker.
-    Returns:
-        float: The last sentiment score, or 0.0 if no data exists.
-    """
-    conn = sqlite3.connect(DB_PATH)
+    conn = _get_connection()
     cursor = conn.cursor()
-    
-    query = 'SELECT sentiment_score FROM logs'
+
+    query = "SELECT sentiment_score FROM logs"
     params = ()
-    
+
     if speaker_filter:
-        query += ' WHERE speaker = ?'
+        query += " WHERE speaker = ?"
         params = (speaker_filter,)
-        
-    query += ' ORDER BY id DESC LIMIT 1'
-    
+
+    query += " ORDER BY id DESC LIMIT 1"
     cursor.execute(query, params)
-    
     row = cursor.fetchone()
     conn.close()
     return row[0] if row else 0.0
 
 def get_average_sentiment(speaker_filter=None):
-    """
-    Calculates the average sentiment score for all logs of a specific speaker.
-    Returns:
-        float: The average score (-1.0 to 1.0), or 0.0 if no data.
-    """
-    conn = sqlite3.connect(DB_PATH)
+    conn = _get_connection()
     cursor = conn.cursor()
-    
-    query = 'SELECT AVG(sentiment_score) FROM logs'
+
+    query = "SELECT AVG(sentiment_score) FROM logs"
     params = ()
-    
+
     if speaker_filter:
-        query += ' WHERE speaker = ?'
+        query += " WHERE speaker = ?"
         params = (speaker_filter,)
-        
+
     cursor.execute(query, params)
     row = cursor.fetchone()
     conn.close()
-    
     return row[0] if row and row[0] is not None else 0.0
 
 def clear_logs():
-    """Deletes all records from the logs table."""
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute('DELETE FROM logs')
-    conn.commit()
-    conn.close()
-    print("🧹 Database logs cleared.")
-    print(f"Database initialized at: {DB_PATH}")
+    _execute_write("DELETE FROM logs")
 
 def save_entry(speaker, text, sentiment_score):
-    """
-    Saves a conversation entry to the database.
-    
-    Args:
-        speaker (str): 'User' or 'AI'
-        text (str): The spoken text
-        sentiment_score (float): The sentiment compound score (-1.0 to 1.0)
-    """
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
-    cursor.execute('''
+    _execute_write(
+        """
         INSERT INTO logs (timestamp, speaker, text, sentiment_score)
         VALUES (?, ?, ?, ?)
-    ''', (timestamp, speaker, text, sentiment_score))
-    
-    conn.commit()
-    conn.close()
+        """,
+        (timestamp, speaker, text, sentiment_score),
+    )

@@ -3,12 +3,10 @@
 
 import argparse
 import asyncio
-import json
 import queue
 import multiprocessing
 import sys
 import time
-import typing as tp
 import os
 from enum import Enum
 
@@ -22,8 +20,6 @@ from moshi_mlx import models, utils
 from moshi_mlx.client_utils import AnyPrinter, Printer, RawPrinter
 import huggingface_hub
 
-# --- VOXINTEL INTEGRATION IMPORTS ---
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from src.database import db_manager
 from src.analysis import sentiment_analyzer
 
@@ -239,7 +235,7 @@ def client(printer_q, client_to_server, server_to_client, args):
         pass
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--tokenizer", type=str)
     parser.add_argument("--moshi-weight", type=str)
@@ -248,7 +244,7 @@ def main():
     parser.add_argument("--steps", default=4000, type=int)
     parser.add_argument("--hf-repo", type=str, default="kyutai/moshiko-mlx-q4")
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     # --- Initialize Database ---
     db_manager.init_db()
@@ -272,51 +268,23 @@ def main():
     p1.start()
     p2.start()
     
-    # --- VOXINTEL: Sentiment Analysis Variables ---
     current_sentence = ""
-    last_speaker = "AI" # Assume Moshi starts or we detect from token content
     
     try:
         while p1.is_alive() and p2.is_alive():
-            time.sleep(0.001)
             try:
-                ty, value = printer_q.get_nowait()
+                ty, value = printer_q.get(timeout=0.1)
                 if ty == PrinterType.TOKEN:
                     printer.print_token(value)
-                    
-                    # --- VOXINTEL LOGIC: Capture Text ---
                     token_text = value
                     current_sentence += token_text
-                    
-                    # Check for sentence end markers
                     if any(punct in token_text for punct in ['.', '?', '!', '\n']):
-                        # Clean and process
                         full_text = current_sentence.strip()
-                        if len(full_text) > 3: # Ignore tiny fragments
-                            # Heuristic: Moshi output doesn't explicitly say "User:" or "AI:" in the token stream usually,
-                            # but the text itself is what Moshi is generating (its response).
-                            # Wait, Moshi is a full-duplex model, it might generate user text too if it's transcribing?
-                            # Moshi generates its OWN speech. The User speech is audio input.
-                            # Does Moshi transcribe user speech? 
-                            # Moshiko is an audio-language model. It generates text tokens for ITSELF.
-                            # It does NOT necessarily transcribe the user in real-time text tokens unless configured.
-                            # Assuming these tokens are MOSHI's response (AI).
-                            
-                            # Let's assume all text tokens are AI for now, as Moshi speaks.
-                            # For User sentiment, we need ASR (Speech-to-Text).
-                            # Does Moshi provide ASR tokens? 
-                            # If not, we are only analyzing AI sentiment for now, which is still useful.
-                            # But wait, the user asked for "User Sentiment". 
-                            # Moshi Moshiko is often used for speech-to-speech. 
-                            # If it doesn't output user transcript, we might need a separate ASR or check if Moshi tokens include user.
-                            # For this MVP, let's capture whatever text Moshi outputs.
-                            
+                        if len(full_text) > 3:
                             score = sentiment_analyzer.get_score(full_text)
                             db_manager.save_entry("AI", full_text, score)
-                            # printer.log("info", f"Saved Sentiment: {score:.2f}")
                         
                         current_sentence = ""
-                    # ------------------------------------
 
                 elif ty == PrinterType.PENDING:
                     printer.print_pending()
@@ -334,12 +302,13 @@ def main():
                 continue
     except KeyboardInterrupt:
         printer.log("warning", "Interrupting, exiting connection.")
-        p1.terminate()
-        p2.terminate()
-
-    # Wait for both processes to finish
-    p1.join()
-    p2.join()
+    finally:
+        if p1.is_alive():
+            p1.terminate()
+        if p2.is_alive():
+            p2.terminate()
+        p1.join(timeout=2)
+        p2.join(timeout=2)
     printer.log("info", "All done!")
 
 if __name__ == "__main__":

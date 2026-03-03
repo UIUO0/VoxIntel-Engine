@@ -1,5 +1,8 @@
 streamlit>=1.30.0
 vaderSentiment>=3.3.2
-pandas>=2.0.0
-plotly>=5.18.0
-python-dotenv>=1.0.0
+numpy>=1.26.0
+sounddevice>=0.4.6
+openai-whisper>=20231117
+torch>=2.2.0
+huggingface-hub>=0.24.0
+sentencepiece>=0.2.0

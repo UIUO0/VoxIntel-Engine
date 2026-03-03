@@ -5,7 +5,7 @@
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.31-FF4B4B.svg)](https://streamlit.io/)
 [![Moshi](https://img.shields.io/badge/Moshi-MLX-orange.svg)](https://github.com/kyutai-labs/moshi)
 [![Whisper](https://img.shields.io/badge/Whisper-OpenAI-green.svg)](https://github.com/openai/whisper)
-[![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)]()
+[![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](./LICENSE)
 
 **VoxIntel Engine** is a cutting-edge, **on-device** conversational AI system that combines full-duplex voice interaction with real-time sentiment analysis. It features a futuristic **Liquid Glass UI** that visually reacts to the user's emotions and voice, creating an immersive "AI Entity" experience.
 
@@ -74,7 +74,7 @@ graph TD
     ```bash
     pip install -r requirements.txt
     ```
-    *(Note: Ensure you have `moshi_mlx` and `openai-whisper` installed correctly).*
+    *(Note: `moshi_mlx`, `mlx`, and `rustymimi` may require platform-specific setup on Apple Silicon.)*
 
 ---
 
@@ -82,7 +82,7 @@ graph TD
 
 1.  **Launch the Dashboard:**
     ```bash
-    streamlit run src/dashboard/app.py
+    python main.py dashboard
     ```
 
 2.  **Start the Experience:**
@@ -94,6 +94,11 @@ graph TD
     - Speak to the AI.
     - Watch the robot face react to your voice and mood.
     - The background particles will glow brighter as the conversation intensifies!
+
+4.  **Optional direct engine run:**
+    ```bash
+    python main.py engine
+    ```
 
 ---
 

@@ -4,5 +4,5 @@ Info: [SERVER] weights loaded
 Info: [SERVER] model warmed up
 Info: [SERVER] connected!
 Info: [CLIENT] received 'start' from server, starting...
-/opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/python3.11/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 10 leaked semaphore objects to clean up at shutdown
+[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m[31m [LAG][0m/opt/homebrew/Cellar/python@3.11/3.11.14_3/Frameworks/Python.framework/Versions/3.11/lib/python3.11/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 10 leaked semaphore objects to clean up at shutdown
   warnings.warn('resource_tracker: There appear to be %d '
