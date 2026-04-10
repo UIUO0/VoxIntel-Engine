@@ -1,4 +1,25 @@
+# Environments
 venv/
+.venv/
+env/
+.env
+
+# Byte-compiled / optimized / DLL files
 __pycache__/
+*.py[cod]
+*$py.class
+
+# Databases
+*.db
+*.sqlite3
 data/*.db
+
+# Logs
+*.log
+
+# System
 .DS_Store
+
+# Caches
+.cache/
+.pytest_cache/

@@ -1,6 +1,0 @@
-#!/Users/uiuo/Documents/GitHub/VoxIntel-Engine/venv/bin/python3.11
-import sys
-from moshi_mlx.local_web import main
-if __name__ == '__main__':
-    sys.argv[0] = sys.argv[0].removesuffix('.exe')
-    sys.exit(main())

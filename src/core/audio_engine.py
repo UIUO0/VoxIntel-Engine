@@ -1,6 +1,11 @@
 from src.core import moshi_app, user_transcriber
 from src.database import db_manager
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
+# الكود الأصلي يبدأ من هنا
+from src.core import moshi_app, user_transcriber
 
 def run_engine():
     print("🚀 Starting VoxIntel Audio Engine...")
