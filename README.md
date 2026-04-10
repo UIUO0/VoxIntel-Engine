@@ -82,7 +82,9 @@ graph TD
 
 1.  **Launch the Dashboard:**
     ```bash
-    python main.py dashboard
+    cd ~/Documents/GitHub/VoxIntel-Engine
+    source venv/bin/activate
+    PYTHONPATH=. streamlit run src/dashboard/app.py
     ```
 
 2.  **Start the Experience:**
